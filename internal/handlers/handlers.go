@@ -16,10 +16,14 @@ import (
 // const pathIndexHTML = "github.com/Yandex-Practicum/go1fl-sprint6-final/index.html"
 const pathIndexHTML = "D:/projects/go-6-sprint-final/index.html"
 
+// GetMainHtmlHandler обрабатывает GET запрос на получение html страницы
 func GetMainHtmlHandler(w http.ResponseWriter, request *http.Request) {
 	http.ServeFile(w, request, pathIndexHTML)
 }
 
+// ConvertFileHandler обрабатывает POST запрос с загруженным файлом для обработки.
+//
+// Иницирует загрузку результирующего файла на клиенте
 func ConvertFileHandler(logger *log.Logger, w http.ResponseWriter, request *http.Request) {
 	err := request.ParseMultipartForm(10 << 20)
 	if err != nil {
@@ -74,6 +78,9 @@ func ConvertFileHandler(logger *log.Logger, w http.ResponseWriter, request *http
 	}
 }
 
+// saveConvertResult определяет директорию и путь для сохранения локальных файлов с результатами конвертации
+//
+// Создает и сохраняет локальный файл. Возвращает сгенерированный путь до файла
 func saveConvertResult(logger *log.Logger, fileHeader *multipart.FileHeader, data string) (string, error) {
 	directoryPath := filepath.Join("..", "results_archive")
 	err := os.MkdirAll(directoryPath, 0755)

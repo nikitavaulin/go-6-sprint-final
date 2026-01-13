@@ -14,6 +14,7 @@ type AppServer struct {
 	Server http.Server
 }
 
+// Конструктор сервера
 func NewServer(logger *log.Logger) *AppServer {
 	router := chi.NewRouter()
 

@@ -1,3 +1,4 @@
+// filemanager служит для управления
 package filemanager
 
 import (
@@ -5,6 +6,7 @@ import (
 	"time"
 )
 
+// GenerateFileName генерирует название файла на основе времени создания
 func GenerateFileName(fileName, extension string) string {
 	creationTime := time.Now().Format("02_01_06_15_04_05")
 	fileName += "_" + creationTime + extension
