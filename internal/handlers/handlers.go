@@ -13,7 +13,7 @@ import (
 	"github.com/Yandex-Practicum/go1fl-sprint6-final/internal/service"
 )
 
-const pathIndexHTML = "../index.html"
+const pathIndexHTML = "index.html"
 
 // GetMainHtmlHandler обрабатывает GET запрос на получение html страницы
 func GetMainHtmlHandler(w http.ResponseWriter, request *http.Request) {
