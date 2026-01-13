@@ -42,18 +42,44 @@ func ConvertFileHandler(logger *log.Logger, w http.ResponseWriter, request *http
 	inputData := string(buf)
 
 	convertedData := service.ConvertText(inputData)
-	saveConvertResult(logger, header, convertedData)
 
+	outputFilePath, err := saveConvertResult(logger, header, convertedData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	outputFile, err := os.Open(outputFilePath)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("file not found: %s", err), http.StatusInternalServerError)
+		return
+	}
+	defer outputFile.Close()
+
+	outputFileInfo, err := outputFile.Stat()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Disposition", "attachment; filename="+outputFile.Name())
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Length", fmt.Sprint(outputFileInfo.Size()))
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(convertedData))
+
+	_, err = io.Copy(w, outputFile)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("sending file error: %s", err), http.StatusInternalServerError)
+		return
+	}
 }
 
-func saveConvertResult(logger *log.Logger, fileHeader *multipart.FileHeader, data string) {
+func saveConvertResult(logger *log.Logger, fileHeader *multipart.FileHeader, data string) (string, error) {
 	directoryPath := filepath.Join("..", "results_archive")
 	err := os.MkdirAll(directoryPath, 0755)
 	if err != nil && !os.IsExist(err) {
-		log.Fatal(err)
-		return
+		logger.Println(err.Error())
+		return "", err
 	}
 
 	ext := filepath.Ext(fileHeader.Filename)
@@ -62,8 +88,11 @@ func saveConvertResult(logger *log.Logger, fileHeader *multipart.FileHeader, dat
 
 	err = filemanager.CreateFile(outputFilePath, data)
 	if err != nil {
-		logger.Printf("output file creation error: %s", err)
-		return
+		err = fmt.Errorf("output file creation error: %s", err)
+		logger.Println(err.Error())
+		return "", err
 	}
-	logger.Printf("Successful: convert result was written in file %s", outputFileName)
+	logger.Printf("Successful: convert result was written in file %s\n", outputFileName)
+
+	return outputFilePath, nil
 }
